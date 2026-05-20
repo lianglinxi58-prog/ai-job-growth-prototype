@@ -233,6 +233,41 @@
       text-align: center;
       color: var(--muted);
       padding: 18px;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .upload:hover, .upload.dragging {
+      border-color: var(--brand-2);
+      background: #f1fbfa;
+      box-shadow: 0 0 0 3px rgba(24, 160, 166, .12);
+    }
+
+    .upload input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .upload strong {
+      display: block;
+      color: #465767;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .upload .file-state {
+      margin-top: 10px;
+      font-weight: 800;
+      color: var(--brand);
+    }
+
+    .upload.uploaded {
+      border-style: solid;
+      border-color: #8fd8cf;
+      background: #f0fbf8;
     }
 
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -628,12 +663,14 @@
                 <label>已有经历</label>
                 <textarea>完成过课程产品分析作业，参与学院创新创业比赛，熟悉基础Excel和Figma。</textarea>
               </div>
-              <div class="upload">
+              <label class="upload" id="resumeUploadBox" for="resumeUpload">
+                <input id="resumeUpload" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                 <div>
                   <strong>上传简历或粘贴经历</strong>
                   <div>支持 PDF / DOCX；未上传也可先生成简版报告</div>
+                  <div class="file-state" id="resumeFileState">点击选择文件，或将文件拖到这里</div>
                 </div>
-              </div>
+              </label>
               <div class="btn-row">
                 <button class="btn" data-jump="report">生成评估报告</button>
                 <button class="btn secondary">保存草稿</button>
@@ -921,6 +958,51 @@
 
     document.getElementById("cashBtn").addEventListener("click", () => {
       showToast("提现申请已提交，等待审核");
+    });
+
+    const resumeUpload = document.getElementById("resumeUpload");
+    const resumeUploadBox = document.getElementById("resumeUploadBox");
+    const resumeFileState = document.getElementById("resumeFileState");
+    const allowedResumeTypes = [".pdf", ".doc", ".docx"];
+
+    function updateResumeUpload(file) {
+      if (!file) return;
+      const lowerName = file.name.toLowerCase();
+      const isAllowed = allowedResumeTypes.some(type => lowerName.endsWith(type));
+      if (!isAllowed) {
+        resumeUpload.value = "";
+        resumeUploadBox.classList.remove("uploaded");
+        resumeFileState.textContent = "仅支持 PDF / DOC / DOCX 文件";
+        showToast("请上传 PDF 或 Word 简历");
+        return;
+      }
+
+      resumeUploadBox.classList.add("uploaded");
+      resumeFileState.textContent = `${file.name} 已上传，可生成更准确报告`;
+      showToast("简历已上传，评估会更准确");
+    }
+
+    resumeUpload.addEventListener("change", event => {
+      updateResumeUpload(event.target.files[0]);
+    });
+
+    ["dragenter", "dragover"].forEach(type => {
+      resumeUploadBox.addEventListener(type, event => {
+        event.preventDefault();
+        resumeUploadBox.classList.add("dragging");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(type => {
+      resumeUploadBox.addEventListener(type, event => {
+        event.preventDefault();
+        resumeUploadBox.classList.remove("dragging");
+      });
+    });
+
+    resumeUploadBox.addEventListener("drop", event => {
+      const file = event.dataTransfer.files[0];
+      if (file) updateResumeUpload(file);
     });
   </script>
 </body>
