@@ -995,7 +995,8 @@
         tasks: normalizedTasks,
         resume: resumeBullets.length ? resumeBullets.map(item => `• ${item}`).join("\n") : "请补充更具体的项目经历后生成简历表达。",
         star: data.nextAction || "建议先补充项目背景、个人行动和结果数据，再组织 STAR 面试回答。",
-        interviewQuestions: interviewQuestions.slice(0, 5)
+        interviewQuestions: interviewQuestions.slice(0, 5),
+        suitableDirections: Array.isArray(data.suitableDirections) ? data.suitableDirections.slice(0, 4) : []
       };
     }
 
@@ -1010,12 +1011,18 @@
           body: JSON.stringify(userProfile),
           signal: controller.signal
         });
-        if (!response.ok) throw new Error("API unavailable");
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          console.error("Analyze API error", errorBody);
+          throw new Error(errorBody.error || "API unavailable");
+        }
         const data = await response.json();
         return normalizeApiReport(data, userProfile);
       } catch (error) {
+        console.error("Analyze API failed, using local fallback", error);
         const fallbackReport = buildFallbackReport(userProfile);
         fallbackReport.source = "fallback";
+        fallbackReport.sourceMessage = "AI接口调用失败，已使用本地模拟分析";
         return fallbackReport;
       } finally {
         clearTimeout(timer);
@@ -1045,7 +1052,7 @@
 
     function renderReport(report, profile) {
       document.querySelectorAll(".targetText").forEach(node => node.textContent = profile.targetRole);
-      document.getElementById("reportSourceTag").textContent = report.source === "api" ? "AI接口已生成" : "当前使用本地模拟分析";
+      document.getElementById("reportSourceTag").textContent = report.source === "api" ? "AI接口已生成" : (report.sourceMessage || "当前使用本地模拟分析");
       document.getElementById("totalScore").textContent = report.totalScore;
       document.querySelector(".ring").style.background = `conic-gradient(var(--blue) 0 ${report.totalScore}%, #e5edf8 ${report.totalScore}% 100%)`;
       document.getElementById("matchScore").textContent = `${report.matchScore}%`;
@@ -1053,7 +1060,7 @@
       document.getElementById("diagnosisText").textContent = `一句话诊断结论：${report.diagnosis}`;
       setTags("strengthList", report.strengths);
       setTags("weaknessList", report.weaknesses, "amber");
-      setTags("directionList", suitableDirections(report.track), "violet");
+      setTags("directionList", report.suitableDirections && report.suitableDirections.length ? report.suitableDirections : suitableDirections(report.track), "violet");
 
       const scoreValues = [
         report.scores.targetClarity,
