@@ -273,6 +273,24 @@
 
     .parse-card.show { display: block; }
 
+    .coach-card {
+      border: 1px solid #c9d7f5;
+      border-radius: 14px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(37, 99, 235, .06), rgba(6, 182, 212, .07));
+    }
+
+    .coach-card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .coach-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
     .btn-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .btn {
       min-height: 44px;
@@ -586,6 +604,14 @@
               <button class="btn" data-jump="report">生成求职力评估</button>
               <button class="btn secondary" id="fillDemo">恢复示例数据</button>
             </div>
+            <div class="coach-card">
+              <h3>用 AI 求职成长教练生成分析</h3>
+              <p>点击下方按钮后，可将你的信息带到 AI 求职成长教练中，生成更具体的求职力评估、岗位差距、本月任务和简历优化建议。打开后请将复制的信息粘贴到对话框中。</p>
+              <div class="btn-row">
+                <button class="btn secondary" id="copyProfilePrompt">复制给 AI 助手</button>
+                <button class="btn ghost" id="openCoachFromInput">打开 AI 求职成长教练</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -672,6 +698,14 @@
         <div class="diagnosis">
           一句话诊断结论：你已经具备 AI 产品方向的基础工具意识和项目雏形，但需要把“课程作业/分析经历”沉淀成更完整的项目成果，再转化为简历和面试中都能讲清楚的表达。
         </div>
+        <div class="coach-card">
+          <h3>需要更具体的 AI 分析？</h3>
+          <p>当前页面展示的是 Demo 示例结果。你可以复制个人信息到 AI 求职成长教练中，生成更贴合自身经历的分析。打开后请将复制的信息粘贴到对话框中。</p>
+          <div class="btn-row">
+            <button class="btn secondary" id="copyProfilePromptFromReport">复制个人信息</button>
+            <button class="btn ghost" id="openCoachFromReport">打开 AI 求职成长教练</button>
+          </div>
+        </div>
       </section>
 
       <section class="page" id="tasks">
@@ -739,6 +773,14 @@
                 <button class="btn" id="regen">重新生成</button>
                 <button class="btn secondary" id="copyAll">复制生成结果</button>
               </div>
+              <div class="coach-card">
+                <h3>让 AI 求职成长教练继续优化</h3>
+                <p>复制当前项目经历后，可以让 AI 求职成长教练生成更贴合目标岗位的简历表达、STAR 回答和面试追问。打开后请将复制的信息粘贴到对话框中。</p>
+                <div class="btn-row">
+                  <button class="btn secondary" id="copyProjectPrompt">复制项目经历给 AI 助手</button>
+                  <button class="btn ghost" id="openCoachFromProject">打开 AI 求职成长教练</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -779,6 +821,8 @@
   <div class="toast" id="toast">已更新</div>
 
   <script>
+    const COZE_BOT_URL = "https://www.coze.cn/store/bot/your-bot-id";
+
     const pageMeta = {
       input: ["生成我的求职成长方案", "填写你的求职目标和已有经历，系统将生成求职力评估与本月行动建议。"],
       report: ["求职力评估报告", "查看当前求职准备情况、核心优势、主要短板和下一步建议。"],
@@ -792,6 +836,7 @@
     const pageDesc = document.getElementById("pageDesc");
     const toast = document.getElementById("toast");
     let hasResumeAttachment = false;
+    let uploadedResumeName = "";
 
     function showToast(text) {
       toast.textContent = text;
@@ -866,10 +911,112 @@
         return;
       }
       hasResumeAttachment = true;
+      uploadedResumeName = file.name;
       resumeUploadBox.classList.add("uploaded");
       resumeUploadText.textContent = `${file.name} 已上传，系统将优先识别简历信息`;
       resumeParseCard.classList.add("show");
       showToast("简历已上传并完成模拟识别");
+    });
+
+    function valueOf(id) {
+      const value = document.getElementById(id)?.value?.trim();
+      return value || "未填写";
+    }
+
+    function resumeStatusText() {
+      return hasResumeAttachment ? `已上传：${uploadedResumeName || "简历附件"}` : "未上传";
+    }
+
+    function resumeParseText() {
+      return hasResumeAttachment ? "已识别：实习经历 1 项、项目经历 2 项、技能工具 5 项" : "未上传简历，暂无识别结果";
+    }
+
+    function buildProfilePrompt() {
+      return `你好，你是我的 AI 求职成长教练。请根据以下信息，为我生成求职力评估、岗位差距、本月成长任务、简历优化建议和模拟面试问题。
+
+【基础信息】
+学校：${valueOf("school")}
+年级：${valueOf("grade")}
+专业：${valueOf("major")}
+
+【求职目标】
+目标岗位：${valueOf("targetRole")}
+
+【技能工具】
+技能工具：${valueOf("skills")}
+
+【已有经历】
+已有经历：${valueOf("experience")}
+
+【简历附件】
+是否上传简历：${resumeStatusText()}
+模拟识别结果：${resumeParseText()}
+
+【当前困惑】
+当前求职困惑：${valueOf("confusion")}
+
+请按以下结构输出：
+1. 求职力总分与目标岗位匹配度
+2. 我的 3 个核心优势
+3. 我的 3 个主要短板
+4. 本月最建议完成的 3 个成长任务
+5. 可写进简历的一段项目经历表达
+6. 5 个可能被问到的面试问题
+7. 下一步最优先行动建议`;
+    }
+
+    function buildProjectPrompt() {
+      return `你好，你是我的 AI 求职成长教练。请帮我把下面这段项目经历优化成适合目标岗位的简历表达，并生成 STAR 面试回答和 5 个追问问题。
+
+【目标岗位】
+${valueOf("targetRole")}
+
+【原始项目经历】
+${valueOf("rawProject")}
+
+请输出：
+1. 2-3 条简历 bullet
+2. 一版 STAR 面试回答
+3. 5 个面试追问
+4. 这段经历还可以补充哪些量化结果`;
+    }
+
+    async function copyText(text, successText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(successText);
+      } catch (error) {
+        const helper = document.createElement("textarea");
+        helper.value = text;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.left = "-9999px";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+        showToast(successText);
+      }
+    }
+
+    function openCoach() {
+      window.open(COZE_BOT_URL, "_blank", "noopener,noreferrer");
+    }
+
+    document.getElementById("copyProfilePrompt").addEventListener("click", () => {
+      copyText(buildProfilePrompt(), "已复制，可粘贴到 AI 求职成长教练中生成分析。");
+    });
+
+    document.getElementById("copyProfilePromptFromReport").addEventListener("click", () => {
+      copyText(buildProfilePrompt(), "已复制，可粘贴到 AI 求职成长教练中生成分析。");
+    });
+
+    document.getElementById("copyProjectPrompt").addEventListener("click", () => {
+      copyText(buildProjectPrompt(), "项目经历已复制，可粘贴到 AI 求职成长教练中继续优化。");
+    });
+
+    ["openCoachFromInput", "openCoachFromReport", "openCoachFromProject"].forEach(id => {
+      document.getElementById(id).addEventListener("click", openCoach);
     });
 
     const variants = [
