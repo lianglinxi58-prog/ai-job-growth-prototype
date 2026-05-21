@@ -1,0 +1,16 @@
+{
+  "name": "ai-job-growth-prototype",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "openai": "^4.104.0"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  }
+}
