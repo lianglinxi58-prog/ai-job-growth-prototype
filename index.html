@@ -601,15 +601,14 @@
               <input id="confusion" value="不知道如何把课程项目包装成产品岗经历" placeholder="如：不知道岗位差距、简历不会写、缺少项目、面试表达不清楚">
             </div>
             <div class="btn-row">
-              <button class="btn" data-jump="report">生成求职力评估</button>
+              <button class="btn" id="generateReportBtn">生成求职力评估报告</button>
               <button class="btn secondary" id="fillDemo">恢复示例数据</button>
             </div>
             <div class="coach-card">
-              <h3>用 AI 求职成长教练生成更具体的分析</h3>
-              <p>复制你的求职信息后，打开 AI 助手页面，即可生成更贴合自身经历的求职力评估、岗位差距、本月任务和简历优化建议。打开后请将复制的信息粘贴到对话框中。如页面响应较慢，也可将复制内容粘贴到 ChatGPT、Coze、Kimi 等 AI 助手中使用。</p>
+              <h3>高级选项：复制本次分析 Prompt</h3>
+              <p>用于在 ChatGPT / Coze / Kimi 等 AI 助手中复现本次分析逻辑。</p>
               <div class="btn-row">
-                <button class="btn secondary" id="copyProfilePrompt">复制给 AI 助手</button>
-                <button class="btn ghost" id="openCoachFromInput">打开 AI 助手页面</button>
+                <button class="btn secondary" id="copyProfilePrompt">复制本次分析 Prompt</button>
               </div>
             </div>
           </div>
@@ -632,21 +631,21 @@
               <h2>AI 求职力评估报告</h2>
               <p>目标岗位：<span class="targetText">AI产品经理实习生</span></p>
             </div>
-            <button class="btn secondary" data-jump="tasks">查看本月任务</button>
+            <button class="btn secondary" data-jump="tasks">查看本月成长任务</button>
           </div>
           <div class="band-body score-layout">
-            <div class="ring"><div><strong>76</strong><span>求职力总分</span></div></div>
+            <div class="ring"><div><strong id="totalScore">76</strong><span>求职力总分</span></div></div>
             <div class="grid">
               <div class="grid cols-2">
-                <div class="metric"><small>目标岗位匹配度</small><strong>68%</strong><span>具备基础方向感，但作品沉淀不足</span></div>
+                <div class="metric"><small>目标岗位匹配度</small><strong id="matchScore">68%</strong><span id="matchSummary">具备基础方向感，但作品沉淀不足</span></div>
                 <div class="metric"><small>建议成长节奏</small><strong>30天</strong><span>先补一个可写入简历的项目成果</span></div>
               </div>
               <div class="bars">
                 <div class="bar"><span>目标清晰度</span><div class="track"><i style="--w:78%"></i></div><b>78</b></div>
                 <div class="bar"><span>技能匹配度</span><div class="track"><i style="--w:70%"></i></div><b>70</b></div>
-                <div class="bar"><span>实践完整度</span><div class="track"><i style="--w:64%"></i></div><b>64</b></div>
+                <div class="bar"><span>实践经历完整度</span><div class="track"><i style="--w:64%"></i></div><b>64</b></div>
                 <div class="bar"><span>简历表达基础</span><div class="track"><i style="--w:60%"></i></div><b>60</b></div>
-                <div class="bar"><span>行动准备度</span><div class="track"><i style="--w:72%"></i></div><b>72</b></div>
+                <div class="bar"><span>求职行动准备度</span><div class="track"><i style="--w:72%"></i></div><b>72</b></div>
               </div>
             </div>
           </div>
@@ -655,7 +654,7 @@
         <div class="grid cols-3">
           <div class="card">
             <strong>3 个核心优势</strong>
-            <div class="tag-list">
+            <div class="tag-list" id="strengthList">
               <span class="tag">AI产品兴趣明确</span>
               <span class="tag">有竞品分析经历</span>
               <span class="tag">工具学习意愿强</span>
@@ -663,7 +662,7 @@
           </div>
           <div class="card">
             <strong>3 个主要短板</strong>
-            <div class="tag-list">
+            <div class="tag-list" id="weaknessList">
               <span class="tag amber">项目结果不够量化</span>
               <span class="tag amber">简历表达偏课程化</span>
               <span class="tag amber">缺少可展示作品</span>
@@ -695,16 +694,8 @@
           </div>
         </div>
 
-        <div class="diagnosis">
+        <div class="diagnosis" id="diagnosisText">
           一句话诊断结论：你已经具备 AI 产品方向的基础工具意识和项目雏形，但需要把“课程作业/分析经历”沉淀成更完整的项目成果，再转化为简历和面试中都能讲清楚的表达。
-        </div>
-        <div class="coach-card">
-          <h3>需要更具体的 AI 分析？</h3>
-          <p>当前页面展示的是示例评估结果。你可以复制个人信息到 AI 助手中，生成更贴合自身经历的分析。打开后请将复制的信息粘贴到对话框中。如页面响应较慢，也可将复制内容粘贴到 ChatGPT、Coze、Kimi 等 AI 助手中使用。</p>
-          <div class="btn-row">
-            <button class="btn secondary" id="copyProfilePromptFromReport">复制个人信息</button>
-            <button class="btn ghost" id="openCoachFromReport">打开 AI 助手页面</button>
-          </div>
         </div>
       </section>
 
@@ -778,7 +769,6 @@
                 <p>复制当前项目经历后，可以让 AI 助手生成更贴合目标岗位的简历表达、STAR 回答和面试追问。打开后请将复制的信息粘贴到对话框中。如页面响应较慢，也可将复制内容粘贴到 ChatGPT、Coze、Kimi 等 AI 助手中使用。</p>
                 <div class="btn-row">
                   <button class="btn secondary" id="copyProjectPrompt">复制项目经历给 AI 助手</button>
-                  <button class="btn ghost" id="openCoachFromProject">打开 AI 助手页面</button>
                 </div>
               </div>
             </div>
@@ -813,7 +803,7 @@
       </section>
 
       <div class="footer">
-        本 Demo 重点展示：用户填写求职目标与个人经历后，系统生成求职力评估、本月成长任务，并辅助完成简历表达与面试准备。
+        当前 Demo 使用前端规则模拟 AI 分析流程；后续可迁移至 Serverless 接口接入大模型 API，实现真实生成。
       </div>
     </main>
   </div>
@@ -837,6 +827,7 @@
     const toast = document.getElementById("toast");
     let hasResumeAttachment = false;
     let uploadedResumeName = "";
+    let currentReport = null;
 
     function showToast(text) {
       toast.textContent = text;
@@ -852,18 +843,213 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    function valueOf(id) {
+      const value = document.getElementById(id)?.value?.trim();
+      return value || "未填写";
+    }
+
+    function collectUserProfile() {
+      return {
+        school: valueOf("school"),
+        grade: valueOf("grade"),
+        major: valueOf("major"),
+        targetRole: valueOf("targetRole"),
+        skills: valueOf("skills"),
+        experience: valueOf("experience"),
+        resumeUploaded: hasResumeAttachment,
+        concern: valueOf("confusion")
+      };
+    }
+
+    function detectTrack(targetRole) {
+      const role = targetRole || "";
+      if (role.includes("AI产品") || role.includes("产品经理")) return "aiProduct";
+      if (role.includes("数据分析")) return "data";
+      if (role.includes("财务") || role.includes("财税")) return "finance";
+      return "general";
+    }
+
+    function clampScore(value) {
+      return Math.max(45, Math.min(95, value));
+    }
+
+    function buildFallbackReport(profile) {
+      const track = detectTrack(profile.targetRole);
+      const hasTarget = profile.targetRole !== "未填写";
+      const hasExperience = profile.experience !== "未填写" && profile.experience.length > 18;
+      const hasSkills = profile.skills !== "未填写" && profile.skills.length > 6;
+      const resumeBonus = profile.resumeUploaded ? 6 : 0;
+
+      const templates = {
+        aiProduct: {
+          matchSummary: "具备 AI 产品方向基础，需要补足真实反馈与指标验证",
+          strengths: ["AI工具实践意识", "PRD/原型/需求分析基础", "行业内容理解较强"],
+          weaknesses: ["真实用户反馈不足", "技术边界理解不足", "产品指标验证不足"],
+          diagnosis: "你适合继续沿 AI 产品实习方向推进，下一步应把 Demo、用户反馈和产品指标串成一段可讲清楚的项目经历。",
+          tasks: [
+            ["补齐一个 AI 产品 Demo 迭代记录", "任务目标：让当前作品从页面展示变成可解释的产品探索过程。", "完成标准：补 1 份竞品分析、1 份 PRD 优化记录、1 轮用户反馈。推荐产出：需求列表、核心流程图、迭代前后对比。"],
+            ["完成一次 PRD 与原型优化", "任务目标：把 AI 求职流程讲成产品方案。", "完成标准：明确输入、分析、任务、表达生成 4 个模块。推荐产出：PRD 摘要、关键页面说明、交互说明。"],
+            ["收集 3 位目标用户反馈", "任务目标：验证 Demo 对大学生求职准备是否有帮助。", "完成标准：记录 3 条问题、3 条建议和 1 次迭代。推荐产出：访谈表、反馈归因、优化清单。"]
+          ],
+          resume: "围绕 AI 求职成长场景，设计「信息输入-求职评估-成长任务-简历/面试生成」MVP Demo，梳理大学生求职准备中的目标不清、项目难表达和面试难复盘问题，并通过前端模拟 AI 分析流程验证核心使用路径。",
+          star: "S：大学生求职时常有经历但不会表达。T：我希望设计一个能完成求职诊断和行动建议的 AI 产品 Demo。A：我拆解用户输入、评估维度、任务建议和简历面试生成流程，并预留后续接入模型接口的前端结构。R：最终形成一套可演示的 4 页闭环，能展示产品探索、原型搭建和 AI 工作流设计能力。"
+        },
+        data: {
+          matchSummary: "具备数据工具基础，建议强化 SQL、指标拆解和业务结论表达",
+          strengths: ["Python/Excel/BI 工具意识", "数据项目可沉淀", "分析流程学习基础"],
+          weaknesses: ["SQL 熟练度需补强", "业务指标体系不够清晰", "数据结论表达偏弱"],
+          diagnosis: "你可以把目标收敛到数据分析实习，优先补一个有业务问题、清洗过程、可视化和结论建议的数据作品集。",
+          tasks: [
+            ["完成一份数据分析作品集", "任务目标：用公开数据完成从清洗到结论的完整项目。", "完成标准：至少包含数据清洗、指标计算和可视化。推荐产出：Notebook、图表看板、结论摘要。"],
+            ["补充业务指标解释", "任务目标：把图表转化为业务语言。", "完成标准：解释 5 个关键指标及其业务含义。推荐产出：指标字典、分析框架、洞察清单。"],
+            ["输出一页可视化报告", "任务目标：让面试官快速看懂你的分析价值。", "完成标准：完成 1 页仪表盘和 3 条业务建议。推荐产出：Power BI/Excel 看板、报告截图。"]
+          ],
+          resume: "基于公开业务数据完成数据分析项目，使用 Excel/Python 进行数据清洗与指标计算，并通过可视化看板呈现关键趋势、异常点和业务建议，形成可用于简历展示的数据分析作品集。",
+          star: "S：我希望补齐数据分析岗位所需的项目证明。T：目标是完成一份从数据处理到业务结论的作品。A：我清洗数据、拆解指标、制作图表，并把结果整理成一页报告。R：最终产出可展示的分析报告，也更清楚面试中如何解释数据结论。"
+        },
+        finance: {
+          matchSummary: "具备财务/财税背景，建议补充 AI 与财务流程结合的项目证明",
+          strengths: ["会计/财务背景基础", "财务分析项目可延展", "适合切入垂直 AI 场景"],
+          weaknesses: ["AI产品结合度不足", "系统流程理解不足", "自动化场景表达不足"],
+          diagnosis: "你可以把财务背景转化为差异化优势，优先做一个 AI 财务报表分析助手或智能报销 Agent 的小型 Demo。",
+          tasks: [
+            ["梳理一个财务系统流程", "任务目标：把财务专业知识转成产品流程理解。", "完成标准：画出报销、报表或预算分析流程。推荐产出：流程图、角色权限、异常场景清单。"],
+            ["设计 AI 财务报表分析助手", "任务目标：展示 AI 与财务场景的结合能力。", "完成标准：定义输入数据、分析问题和输出建议。推荐产出：功能清单、Prompt 示例、结果样例。"],
+            ["完成智能报销 Agent 原型", "任务目标：沉淀一个可展示的垂直 Agent 作品。", "完成标准：设计发票识别、规则校验和异常提示流程。推荐产出：页面原型、规则表、演示说明。"]
+          ],
+          resume: "结合财务/财税场景设计 AI 报表分析或智能报销 Agent 原型，梳理业务流程、用户输入、规则校验和结果输出逻辑，展示将专业知识转化为 AI 产品方案的能力。",
+          star: "S：我希望把财务专业背景和 AI 产品能力结合起来。T：目标是设计一个财务垂直场景 Agent。A：我拆解财务流程、识别可自动化环节，并设计输入、校验和分析输出。R：最终形成一个既体现专业背景又能展示 AI 产品思维的项目方向。"
+        },
+        general: {
+          matchSummary: "目标岗位还不够明确，建议先收敛方向再补项目证明",
+          strengths: ["具备主动探索意识", "已有经历可整理", "适合先做求职资产盘点"],
+          weaknesses: ["目标岗位不够具体", "技能与岗位映射不足", "项目成果表达不聚焦"],
+          diagnosis: "你需要先补充更具体的目标岗位，再围绕岗位要求整理技能、经历和项目成果。",
+          tasks: [
+            ["明确 1 个主投岗位", "任务目标：把模糊目标收敛成可准备的岗位。", "完成标准：选定 1 个岗位并整理 5 条 JD 要求。推荐产出：岗位要求表、关键词清单。"],
+            ["建设一份简历资产库", "任务目标：把已有经历拆成可复用素材。", "完成标准：整理 3 段经历的背景、行动、结果。推荐产出：经历素材表、量化结果清单。"],
+            ["完成一次模拟面试", "任务目标：验证当前表达是否清晰。", "完成标准：回答 5 个常见追问并复盘。推荐产出：回答稿、问题清单、改进点。"]
+          ],
+          resume: "围绕目标岗位要求整理个人经历与技能资产，梳理项目背景、个人行动和结果产出，并将课程、社团或比赛经历转化为更清晰的简历表达。",
+          star: "S：我当前求职方向还需要进一步明确。T：目标是先整理岗位要求和个人经历。A：我拆解 JD 关键词，盘点已有项目和技能，并把经历改写成结构化表达。R：最终能更清楚地判断岗位差距和下一步补强方向。"
+        }
+      };
+
+      const template = templates[track];
+      const scores = {
+        targetClarity: clampScore(hasTarget ? 76 : 54),
+        skillMatch: clampScore((hasSkills ? 68 : 56) + (track === "general" ? -4 : 4)),
+        practiceCompleteness: clampScore((hasExperience ? 66 : 52) + resumeBonus),
+        resumeExpression: clampScore((profile.resumeUploaded ? 68 : 58) + (hasExperience ? 4 : 0)),
+        actionReadiness: clampScore(hasTarget && profile.concern !== "未填写" ? 72 : 58)
+      };
+      const totalScore = Math.round(Object.values(scores).reduce((sum, item) => sum + item, 0) / 5);
+      const matchScore = clampScore(Math.round((scores.targetClarity + scores.skillMatch + scores.practiceCompleteness) / 3));
+
+      return { ...template, track, scores, totalScore, matchScore };
+    }
+
+    async function generateCareerReport(userProfile) {
+      // 当前 GitHub Pages 版本使用本地 fallback 规则模拟 AI 分析；未来迁移至 Vercel/Netlify 后，可通过 /api/analyze 接入真实大模型 API。
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userProfile)
+        });
+        if (!response.ok) throw new Error("API unavailable");
+        return await response.json();
+      } catch (error) {
+        return buildFallbackReport(userProfile);
+      }
+    }
+
+    function setTags(containerId, values, className = "") {
+      const container = document.getElementById(containerId);
+      container.innerHTML = values.map(item => `<span class="tag ${className}">${item}</span>`).join("");
+    }
+
+    function renderReport(report, profile) {
+      document.querySelectorAll(".targetText").forEach(node => node.textContent = profile.targetRole);
+      document.getElementById("totalScore").textContent = report.totalScore;
+      document.querySelector(".ring").style.background = `conic-gradient(var(--blue) 0 ${report.totalScore}%, #e5edf8 ${report.totalScore}% 100%)`;
+      document.getElementById("matchScore").textContent = `${report.matchScore}%`;
+      document.getElementById("matchSummary").textContent = report.matchSummary;
+      document.getElementById("diagnosisText").textContent = `一句话诊断结论：${report.diagnosis}`;
+      setTags("strengthList", report.strengths);
+      setTags("weaknessList", report.weaknesses, "amber");
+
+      const scoreValues = [
+        report.scores.targetClarity,
+        report.scores.skillMatch,
+        report.scores.practiceCompleteness,
+        report.scores.resumeExpression,
+        report.scores.actionReadiness
+      ];
+      document.querySelectorAll(".bars .bar").forEach((bar, index) => {
+        bar.querySelector("i").style.setProperty("--w", `${scoreValues[index]}%`);
+        bar.querySelector("b").textContent = scoreValues[index];
+      });
+
+      const summary = document.getElementById("resumeSummary");
+      const tag = document.getElementById("resumeSummaryTag");
+      const card = document.getElementById("resumeSummaryCard");
+      if (profile.resumeUploaded) {
+        summary.textContent = "已结合简历附件与表单信息生成评估。";
+        tag.textContent = "已上传简历";
+        card.innerHTML = "<strong>识别结果</strong><p>识别到：实习经历、项目经历、技能工具等信息。评分已适当提高实践经历完整度与简历表达基础。</p>";
+      } else {
+        summary.textContent = "当前评估主要基于手动填写信息，上传简历后可进一步提高准确性。";
+        tag.textContent = "未上传简历";
+        card.innerHTML = "<strong>评估依据</strong><p>已参考目标岗位、年级专业、技能工具、已有经历和当前求职困惑。面试表达能力需要通过模拟面试进一步评估。</p>";
+      }
+    }
+
+    function renderTasks(report) {
+      document.querySelectorAll(".task").forEach((task, index) => {
+        const item = report.tasks[index];
+        task.querySelector("strong").textContent = item[0];
+        task.querySelector("p").textContent = item[1];
+        task.querySelector("ul").innerHTML = item.slice(2).map(text => `<li>${text}</li>`).join("");
+      });
+    }
+
+    function renderCoachOutputs(report) {
+      document.querySelector("#resumeOutput .copy-area").textContent = report.resume;
+      document.querySelector("#starOutput .copy-area").textContent = report.star;
+      document.querySelector("#questionsOutput ul").innerHTML = [
+        "这个项目最能证明你哪项岗位能力？",
+        "你在项目中做出的关键判断是什么？",
+        "如果重新做一次，你会优先优化哪里？",
+        "这个项目有哪些可以量化的结果？",
+        "你如何把这段经历迁移到目标岗位？"
+      ].map(item => `<li>${item}</li>`).join("");
+    }
+
+    function renderAll(report, profile) {
+      renderReport(report, profile);
+      renderTasks(report);
+      renderCoachOutputs(report);
+    }
+
     navButtons.forEach(button => button.addEventListener("click", () => openPage(button.dataset.page)));
     document.querySelectorAll("[data-jump]").forEach(button => {
-      button.addEventListener("click", () => {
-        const target = button.dataset.jump;
-        if (target === "report") {
-          const role = document.getElementById("targetRole").value.trim() || "AI产品经理实习生";
-          document.querySelectorAll(".targetText").forEach(node => node.textContent = role);
-          updateReportResumeSummary();
-        }
-        openPage(target);
-        showToast("AI Agent 已生成下一步内容");
-      });
+      button.addEventListener("click", () => openPage(button.dataset.jump));
+    });
+
+    document.getElementById("generateReportBtn").addEventListener("click", async () => {
+      const button = document.getElementById("generateReportBtn");
+      const originalText = button.textContent;
+      const profile = collectUserProfile();
+      button.disabled = true;
+      button.textContent = "正在生成分析...";
+      await new Promise(resolve => setTimeout(resolve, 900));
+      currentReport = await generateCareerReport(profile);
+      renderAll(currentReport, profile);
+      button.textContent = originalText;
+      button.disabled = false;
+      openPage("report");
+      showToast("求职力评估报告已生成");
     });
 
     document.getElementById("fillDemo").addEventListener("click", () => {
@@ -876,21 +1062,6 @@
       document.getElementById("experience").value = "做过一份 AI 求职网站竞品分析课程作业，参与学院创新创业比赛，负责用户需求调研和功能方案整理。";
       showToast("示例数据已恢复");
     });
-
-    function updateReportResumeSummary() {
-      const summary = document.getElementById("resumeSummary");
-      const tag = document.getElementById("resumeSummaryTag");
-      const card = document.getElementById("resumeSummaryCard");
-      if (hasResumeAttachment) {
-        summary.textContent = "已结合简历附件与表单信息生成评估。";
-        tag.textContent = "已上传简历";
-        card.innerHTML = "<strong>识别结果</strong><p>识别到：实习经历、项目经历、技能工具等信息。面试表达能力需要通过模拟面试进一步评估。</p>";
-      } else {
-        summary.textContent = "当前评估主要基于手动填写信息，上传简历后可进一步提高准确性。";
-        tag.textContent = "未上传简历";
-        card.innerHTML = "<strong>评估依据</strong><p>已参考目标岗位、年级专业、技能工具、已有经历和当前求职困惑。面试表达能力需要通过模拟面试进一步评估。</p>";
-      }
-    }
 
     const resumeUpload = document.getElementById("resumeUpload");
     const resumeUploadBox = document.getElementById("resumeUploadBox");
@@ -918,11 +1089,6 @@
       showToast("简历已上传并完成模拟识别");
     });
 
-    function valueOf(id) {
-      const value = document.getElementById(id)?.value?.trim();
-      return value || "未填写";
-    }
-
     function resumeStatusText() {
       return hasResumeAttachment ? "已上传简历附件" : "未上传";
     }
@@ -932,28 +1098,29 @@
     }
 
     function buildProfilePrompt() {
+      const profile = collectUserProfile();
       return `你好，你是我的 AI 求职成长教练。请根据以下信息，为我生成求职力评估、岗位差距、本月成长任务、简历优化建议和模拟面试问题。
 
 【基础信息】
-学校：${valueOf("school")}
-年级：${valueOf("grade")}
-专业：${valueOf("major")}
+学校：${profile.school}
+年级：${profile.grade}
+专业：${profile.major}
 
 【求职目标】
-目标岗位：${valueOf("targetRole")}
+目标岗位：${profile.targetRole}
 
 【技能工具】
-技能工具：${valueOf("skills")}
+技能工具：${profile.skills}
 
 【已有经历】
-已有经历：${valueOf("experience")}
+已有经历：${profile.experience}
 
 【简历附件】
 是否上传简历：${resumeStatusText()}
 模拟识别结果：${resumeParseText()}
 
 【当前困惑】
-当前求职困惑：${valueOf("confusion")}
+当前求职困惑：${profile.concern}
 
 请按以下结构输出：
 1. 求职力总分与目标岗位匹配度
@@ -999,42 +1166,20 @@ ${valueOf("rawProject")}
       }
     }
 
-    function openCoach() {
-      window.open(COZE_BOT_URL, "_blank", "noopener,noreferrer");
-    }
-
     document.getElementById("copyProfilePrompt").addEventListener("click", () => {
-      copyText(buildProfilePrompt(), "已复制，可粘贴到 AI 求职成长教练中生成分析。");
-    });
-
-    document.getElementById("copyProfilePromptFromReport").addEventListener("click", () => {
-      copyText(buildProfilePrompt(), "已复制，可粘贴到 AI 求职成长教练中生成分析。");
+      copyText(buildProfilePrompt(), "本次分析 Prompt 已复制");
     });
 
     document.getElementById("copyProjectPrompt").addEventListener("click", () => {
-      copyText(buildProjectPrompt(), "项目经历已复制，可粘贴到 AI 求职成长教练中继续优化。");
+      copyText(buildProjectPrompt(), "项目经历 Prompt 已复制");
     });
 
-    ["openCoachFromInput", "openCoachFromReport", "openCoachFromProject"].forEach(id => {
-      document.getElementById(id).addEventListener("click", openCoach);
-    });
-
-    const variants = [
-      {
-        resume: "针对 AI 求职产品的用户成长路径，调研简历优化、模拟面试和职业规划类工具，梳理用户从求职困惑到表达训练的关键流程，设计求职力评估、本月成长任务、简历优化和面试追问模块，帮助用户把课程项目转化为可展示的求职成果。",
-        star: "S：很多大学生有课程项目或比赛经历，但不知道如何转化成求职表达。T：我希望设计一个能帮助用户完成诊断和训练的产品流程。A：我梳理用户输入、评估维度和成长任务，并把短板拆成项目成果、简历表达和模拟面试三步。R：最终形成一条从信息填写到求职准备的完整使用路径。"
-      },
-      {
-        resume: "基于大学生求职准备场景，设计「输入信息 - 求职评估 - 本月任务 - 简历/面试生成」使用闭环，帮助用户明确岗位匹配度、能力短板和下一步行动建议，并将已有项目转化为更清晰的求职表达。",
-        star: "S：用户在求职准备中常常不知道自己差在哪里。T：我希望让用户快速获得一份可执行的成长方案。A：我将用户信息拆成目标、技能、经历和困惑，再生成评估报告与任务建议。R：用户可以直接知道本月该补什么、怎么写进简历、面试中如何讲。"
-      }
-    ];
-
-    let variantIndex = 0;
     document.getElementById("regen").addEventListener("click", () => {
-      variantIndex = (variantIndex + 1) % variants.length;
-      document.querySelector("#resumeOutput .copy-area").textContent = variants[variantIndex].resume;
-      document.querySelector("#starOutput .copy-area").textContent = variants[variantIndex].star;
+      const profile = collectUserProfile();
+      const report = buildFallbackReport({ ...profile, targetRole: profile.targetRole === "未填写" ? "通用求职方向" : profile.targetRole });
+      report.resume = `${report.resume} 建议补充 1-2 个量化结果，例如调研人数、页面数量、指标变化或产出物数量。`;
+      report.star = `${report.star} 面试时可以进一步说明你如何判断方案优先级，以及结果是否符合目标岗位要求。`;
+      renderCoachOutputs(report);
       showToast("已重新生成一版表达");
     });
 
@@ -1044,13 +1189,11 @@ ${valueOf("rawProject")}
         document.querySelector("#starOutput").innerText,
         document.querySelector("#questionsOutput").innerText
       ].join("\\n\\n");
-      try {
-        await navigator.clipboard.writeText(text);
-        showToast("生成结果已复制");
-      } catch (error) {
-        showToast("当前浏览器不支持自动复制");
-      }
+      await copyText(text, "生成结果已复制");
     });
+
+    currentReport = buildFallbackReport(collectUserProfile());
+    renderAll(currentReport, collectUserProfile());
   </script>
 </body>
 </html>
