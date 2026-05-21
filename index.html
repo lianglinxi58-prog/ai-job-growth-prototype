@@ -631,6 +631,7 @@
               <h2>AI 求职力评估报告</h2>
               <p>目标岗位：<span class="targetText">AI产品经理实习生</span></p>
             </div>
+            <span class="tag green" id="reportSourceTag">当前使用本地模拟分析</span>
             <button class="btn secondary" data-jump="tasks">查看本月成长任务</button>
           </div>
           <div class="band-body score-layout">
@@ -670,7 +671,7 @@
           </div>
           <div class="card">
             <strong>适合切入方向</strong>
-            <div class="tag-list">
+            <div class="tag-list" id="directionList">
               <span class="tag violet">AI工具产品</span>
               <span class="tag violet">校园求职产品</span>
               <span class="tag violet">用户增长/体验分析</span>
@@ -865,7 +866,7 @@
       const role = targetRole || "";
       if (role.includes("AI产品") || role.includes("产品经理")) return "aiProduct";
       if (role.includes("数据分析")) return "data";
-      if (role.includes("财务") || role.includes("财税")) return "finance";
+      if (["审计", "财务", "会计", "税务", "财税", "四大", "事务所", "底稿", "函证", "盘点", "内控", "风控"].some(keyword => role.includes(keyword))) return "finance";
       return "general";
     }
 
@@ -1035,8 +1036,16 @@
       container.innerHTML = values.map(item => `<span class="tag ${className}">${escapeHtml(item)}</span>`).join("");
     }
 
+    function suitableDirections(track) {
+      if (track === "finance") return ["会计师事务所审计", "企业内审/内控", "财务分析", "风险控制"];
+      if (track === "data") return ["数据分析实习", "业务分析", "经营分析", "可视化报告"];
+      if (track === "aiProduct") return ["AI工具产品", "校园求职产品", "用户增长/体验分析"];
+      return ["简历资产建设", "项目经历梳理", "模拟面试准备"];
+    }
+
     function renderReport(report, profile) {
       document.querySelectorAll(".targetText").forEach(node => node.textContent = profile.targetRole);
+      document.getElementById("reportSourceTag").textContent = report.source === "api" ? "AI接口已生成" : "当前使用本地模拟分析";
       document.getElementById("totalScore").textContent = report.totalScore;
       document.querySelector(".ring").style.background = `conic-gradient(var(--blue) 0 ${report.totalScore}%, #e5edf8 ${report.totalScore}% 100%)`;
       document.getElementById("matchScore").textContent = `${report.matchScore}%`;
@@ -1044,6 +1053,7 @@
       document.getElementById("diagnosisText").textContent = `一句话诊断结论：${report.diagnosis}`;
       setTags("strengthList", report.strengths);
       setTags("weaknessList", report.weaknesses, "amber");
+      setTags("directionList", suitableDirections(report.track), "violet");
 
       const scoreValues = [
         report.scores.targetClarity,
