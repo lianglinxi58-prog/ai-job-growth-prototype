@@ -803,7 +803,7 @@
       </section>
 
       <div class="footer">
-        当前 Demo 使用前端规则模拟 AI 分析流程；后续可迁移至 Serverless 接口接入大模型 API，实现真实生成。
+        当前版本支持站内 AI 分析；接口不可用时将自动使用本地模拟结果。
       </div>
     </main>
   </div>
@@ -949,24 +949,90 @@
       return { ...template, track, scores, totalScore, matchScore };
     }
 
+    function normalizeApiReport(data, profile) {
+      if (!data || typeof data !== "object") throw new Error("Invalid API report");
+      const dimensions = data.dimensions || {};
+      const dimensionValues = {
+        targetClarity: Number(dimensions["目标清晰度"]),
+        skillMatch: Number(dimensions["技能匹配度"]),
+        practiceCompleteness: Number(dimensions["实践经历完整度"]),
+        resumeExpression: Number(dimensions["简历表达基础"]),
+        actionReadiness: Number(dimensions["求职行动准备度"])
+      };
+      const monthlyTasks = Array.isArray(data.monthlyTasks) ? data.monthlyTasks : [];
+      const resumeBullets = Array.isArray(data.resumeBullets) ? data.resumeBullets : [];
+      const interviewQuestions = Array.isArray(data.interviewQuestions) ? data.interviewQuestions : [];
+      if (!Number.isFinite(Number(data.score)) || !Number.isFinite(Number(data.match)) || monthlyTasks.length < 1) {
+        throw new Error("Incomplete API report");
+      }
+      const fallback = buildFallbackReport(profile);
+      const normalizedTasks = monthlyTasks.slice(0, 3).map(task => [
+        task.title || "本月成长任务",
+        task.goal || "任务目标：围绕目标岗位补齐关键求职资产。",
+        `完成标准：${task.standard || "完成一份可展示的阶段产出。"}`,
+        `推荐产出：${task.output || "项目记录、简历表达和面试回答稿。"}`
+      ]);
+      while (normalizedTasks.length < 3) normalizedTasks.push(fallback.tasks[normalizedTasks.length]);
+
+      return {
+        source: "api",
+        track: detectTrack(profile.targetRole),
+        totalScore: clampScore(Number(data.score)),
+        matchScore: clampScore(Number(data.match)),
+        matchSummary: data.nextAction || "已基于你的输入生成岗位匹配分析",
+        strengths: (Array.isArray(data.advantages) ? data.advantages : fallback.strengths).slice(0, 3),
+        weaknesses: (Array.isArray(data.weaknesses) ? data.weaknesses : fallback.weaknesses).slice(0, 3),
+        diagnosis: data.diagnosis || "已基于当前信息生成求职力诊断。",
+        scores: {
+          targetClarity: clampScore(dimensionValues.targetClarity || 60),
+          skillMatch: clampScore(dimensionValues.skillMatch || 60),
+          practiceCompleteness: clampScore(dimensionValues.practiceCompleteness || 60),
+          resumeExpression: clampScore(dimensionValues.resumeExpression || 60),
+          actionReadiness: clampScore(dimensionValues.actionReadiness || 60)
+        },
+        resumeSummary: data.resumeSummary || "",
+        tasks: normalizedTasks,
+        resume: resumeBullets.length ? resumeBullets.map(item => `• ${item}`).join("\n") : "请补充更具体的项目经历后生成简历表达。",
+        star: data.nextAction || "建议先补充项目背景、个人行动和结果数据，再组织 STAR 面试回答。",
+        interviewQuestions: interviewQuestions.slice(0, 5)
+      };
+    }
+
     async function generateCareerReport(userProfile) {
       // 当前 GitHub Pages 版本使用本地 fallback 规则模拟 AI 分析；未来迁移至 Vercel/Netlify 后，可通过 /api/analyze 接入真实大模型 API。
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
       try {
         const response = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userProfile)
+          body: JSON.stringify(userProfile),
+          signal: controller.signal
         });
         if (!response.ok) throw new Error("API unavailable");
-        return await response.json();
+        const data = await response.json();
+        return normalizeApiReport(data, userProfile);
       } catch (error) {
-        return buildFallbackReport(userProfile);
+        const fallbackReport = buildFallbackReport(userProfile);
+        fallbackReport.source = "fallback";
+        return fallbackReport;
+      } finally {
+        clearTimeout(timer);
       }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
     function setTags(containerId, values, className = "") {
       const container = document.getElementById(containerId);
-      container.innerHTML = values.map(item => `<span class="tag ${className}">${item}</span>`).join("");
+      container.innerHTML = values.map(item => `<span class="tag ${className}">${escapeHtml(item)}</span>`).join("");
     }
 
     function renderReport(report, profile) {
@@ -995,11 +1061,11 @@
       const tag = document.getElementById("resumeSummaryTag");
       const card = document.getElementById("resumeSummaryCard");
       if (profile.resumeUploaded) {
-        summary.textContent = "已结合简历附件与表单信息生成评估。";
+        summary.textContent = report.resumeSummary || "已结合简历附件与表单信息生成评估。";
         tag.textContent = "已上传简历";
         card.innerHTML = "<strong>识别结果</strong><p>识别到：实习经历、项目经历、技能工具等信息。评分已适当提高实践经历完整度与简历表达基础。</p>";
       } else {
-        summary.textContent = "当前评估主要基于手动填写信息，上传简历后可进一步提高准确性。";
+        summary.textContent = report.resumeSummary || "当前评估主要基于手动填写信息，上传简历后可进一步提高准确性。";
         tag.textContent = "未上传简历";
         card.innerHTML = "<strong>评估依据</strong><p>已参考目标岗位、年级专业、技能工具、已有经历和当前求职困惑。面试表达能力需要通过模拟面试进一步评估。</p>";
       }
@@ -1010,20 +1076,21 @@
         const item = report.tasks[index];
         task.querySelector("strong").textContent = item[0];
         task.querySelector("p").textContent = item[1];
-        task.querySelector("ul").innerHTML = item.slice(2).map(text => `<li>${text}</li>`).join("");
+        task.querySelector("ul").innerHTML = item.slice(2).map(text => `<li>${escapeHtml(text)}</li>`).join("");
       });
     }
 
     function renderCoachOutputs(report) {
       document.querySelector("#resumeOutput .copy-area").textContent = report.resume;
       document.querySelector("#starOutput .copy-area").textContent = report.star;
-      document.querySelector("#questionsOutput ul").innerHTML = [
+      const questions = report.interviewQuestions && report.interviewQuestions.length ? report.interviewQuestions : [
         "这个项目最能证明你哪项岗位能力？",
         "你在项目中做出的关键判断是什么？",
         "如果重新做一次，你会优先优化哪里？",
         "这个项目有哪些可以量化的结果？",
         "你如何把这段经历迁移到目标岗位？"
-      ].map(item => `<li>${item}</li>`).join("");
+      ];
+      document.querySelector("#questionsOutput ul").innerHTML = questions.map(item => `<li>${escapeHtml(item)}</li>`).join("");
     }
 
     function renderAll(report, profile) {
@@ -1042,14 +1109,14 @@
       const originalText = button.textContent;
       const profile = collectUserProfile();
       button.disabled = true;
-      button.textContent = "正在生成分析...";
+      button.textContent = "正在生成 AI 分析...";
       await new Promise(resolve => setTimeout(resolve, 900));
       currentReport = await generateCareerReport(profile);
       renderAll(currentReport, profile);
       button.textContent = originalText;
       button.disabled = false;
       openPage("report");
-      showToast("求职力评估报告已生成");
+      showToast(currentReport.source === "fallback" ? "当前使用本地模拟分析，真实 AI 接口暂不可用。" : "AI 求职力评估报告已生成");
     });
 
     document.getElementById("fillDemo").addEventListener("click", () => {
