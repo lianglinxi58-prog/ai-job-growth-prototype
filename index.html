@@ -303,6 +303,11 @@
       box-shadow: 0 12px 28px rgba(37, 99, 235, .18);
     }
 
+    .btn:disabled {
+      cursor: wait;
+      opacity: .65;
+    }
+
     .btn.secondary {
       color: var(--blue);
       background: #fff;
@@ -829,6 +834,7 @@
     let hasResumeAttachment = false;
     let uploadedResumeName = "";
     let currentReport = null;
+    let isGeneratingReport = false;
 
     function showToast(text) {
       toast.textContent = text;
@@ -1001,9 +1007,8 @@
     }
 
     async function generateCareerReport(userProfile) {
-      // 当前 GitHub Pages 版本使用本地 fallback 规则模拟 AI 分析；未来迁移至 Vercel/Netlify 后，可通过 /api/analyze 接入真实大模型 API。
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 12000);
+      const timer = setTimeout(() => controller.abort(), 58000);
       try {
         const response = await fetch("/api/analyze", {
           method: "POST",
@@ -1013,16 +1018,38 @@
         });
         if (!response.ok) {
           const errorBody = await response.json().catch(() => ({}));
-          console.error("Analyze API error", errorBody);
-          throw new Error(errorBody.error || "API unavailable");
+          throw Object.assign(new Error(errorBody.error || "API unavailable"), {
+            stage: "http_response",
+            status: response.status,
+            requestId: errorBody.requestId || response.headers.get("X-Request-Id")
+          });
         }
-        const data = await response.json();
-        return normalizeApiReport(data, userProfile);
+        const responseText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw Object.assign(new Error("Invalid JSON response"), {
+            stage: "response_parse",
+            status: response.status,
+            requestId: response.headers.get("X-Request-Id")
+          });
+        }
+        const report = normalizeApiReport(data, userProfile);
+        report.requestId = data.requestId || response.headers.get("X-Request-Id") || null;
+        return report;
       } catch (error) {
-        console.error("Analyze API failed, using local fallback", error);
+        console.error("Analyze API failed, using local fallback", {
+          name: error?.name || "Error",
+          message: error?.message || "Unknown error",
+          status: error?.status || null,
+          stage: error?.stage || (error?.name === "AbortError" ? "client_timeout" : "request"),
+          requestId: error?.requestId || null
+        });
         const fallbackReport = buildFallbackReport(userProfile);
         fallbackReport.source = "fallback";
-        fallbackReport.sourceMessage = "AI接口调用失败，已使用本地模拟分析";
+        fallbackReport.sourceMessage = "AI 服务暂时不可用，已切换为演示分析";
+        fallbackReport.requestId = error?.requestId || null;
         return fallbackReport;
       } finally {
         clearTimeout(timer);
@@ -1122,18 +1149,31 @@
     });
 
     document.getElementById("generateReportBtn").addEventListener("click", async () => {
+      if (isGeneratingReport) return;
       const button = document.getElementById("generateReportBtn");
       const originalText = button.textContent;
       const profile = collectUserProfile();
+      const hasMeaningfulInput = [profile.targetRole, profile.skills, profile.experience, profile.concern]
+        .some(value => value && value !== "未填写");
+      if (!hasMeaningfulInput) {
+        showToast("请先填写目标岗位、技能或经历信息。");
+        return;
+      }
+      isGeneratingReport = true;
       button.disabled = true;
+      button.setAttribute("aria-busy", "true");
       button.textContent = "正在生成 AI 分析...";
-      await new Promise(resolve => setTimeout(resolve, 900));
-      currentReport = await generateCareerReport(profile);
-      renderAll(currentReport, profile);
-      button.textContent = originalText;
-      button.disabled = false;
-      openPage("report");
-      showToast(currentReport.source === "fallback" ? "当前使用本地模拟分析，真实 AI 接口暂不可用。" : "AI 求职力评估报告已生成");
+      try {
+        currentReport = await generateCareerReport(profile);
+        renderAll(currentReport, profile);
+        openPage("report");
+        showToast(currentReport.source === "fallback" ? "AI 服务暂时不可用，已切换为演示分析。" : "AI 求职力评估报告已生成");
+      } finally {
+        isGeneratingReport = false;
+        button.textContent = originalText;
+        button.disabled = false;
+        button.removeAttribute("aria-busy");
+      }
     });
 
     document.getElementById("fillDemo").addEventListener("click", () => {
